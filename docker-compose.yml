@@ -1,0 +1,12 @@
+version: '3'
+services:
+  shop-eureka:
+    container_name: shop-eureka
+    image: bananawhite98/shop-eureka:caf35d2e673221298946fa4e50f330acee52a6f6
+    ports:
+      - "8761:8761"
+    networks:
+      - spring-cloud-network
+networks:
+  spring-cloud-network:
+    driver: overlay
