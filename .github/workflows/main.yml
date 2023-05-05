@@ -5,23 +5,32 @@ on:
     branches: [ main ]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@main
       - name: Set up JDK 17
         uses: actions/setup-java@main
         with:
-          java-version: '8.0'
+          java-version: '17'
           distribution: 'temurin'
           cache: maven
       - name: Build with Maven
         run: mvn -B package --file pom.xml
-      - name: Build the Docker image
+      - name: Push To Gitlab
+        env:
+          token: ${{ secrets.GITLAB_TOKEN }}
         run: |
-          echo "${{ secrets.DOCKER_HUB_TOKEN }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin docker.io
-          docker build . --file Dockerfile --tag docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:$GITHUB_SHA
-          docker push docker.io/${{ secrets.DOCKER_HUB_USERNAME }}/${{ secrets.DOCKER_HUB_REPOSITORY }}:$GITHUB_SHA
+          git config user.name ${{ secrets.GITLAB_USERNAME }}
+          git config user.email ${{ secrets.GITLAB_EMAIL }}
+          git remote set-url origin "https://oauth2:${token}@gitlab.com/shop8671515/backend/shop-eureka.git"
+          git branch -M main
+          git push -uf origin main
+      - name: Build the Docker image
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        run: |
+          MVN_VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec | cut -d'-' -f 1)
+          mvn -DskipTests=true -s $(pwd)/.mvn/settings.xml versions:set -DnewVersion=${MVN_VERSION}-b-${GITHUB_RUN_ID}.${GITHUB_SHA}
+          mvn -DskipTests=true -s $(pwd)/.mvn/settings.xml -am jib:build
