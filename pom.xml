@@ -14,6 +14,10 @@
 
     <properties>
         <java.version>1.8</java.version>
+        <jib-maven-plugin.version>3.2.0</jib-maven-plugin.version>
+        <docker-hub-image-name-prefix>registry.hub.docker.com/bananawhite98</docker-hub-image-name-prefix>
+        <docker-image-name>shop-eureka</docker-image-name>
+        <docker-image-tag>${project.version}</docker-image-tag>
     </properties>
 
     <packaging>jar</packaging>
@@ -44,6 +48,19 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib-maven-plugin.version}</version>
+                    <configuration>
+                        <to>
+                            <image>${docker-hub-image-name-prefix}/${docker-image-name}:${docker-image-tag}</image>
+                        </to>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
-
 </project>
